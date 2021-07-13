@@ -3,14 +3,25 @@ package com.pedroamorims.businesscard.ui
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
+import com.pedroamorims.businesscard.App
 import com.pedroamorims.businesscard.databinding.ActivityMainBinding
+import com.pedroamorims.businesscard.util.Image
 
-class MainActivity : AppCompatActivity() {
+class  MainActivity : AppCompatActivity() {
 
     private val binding by lazy {ActivityMainBinding.inflate(layoutInflater)}
+    private  val mainViewModel : MainViewModel by viewModels {
+        MainViewModelFactory((application as App).repository)
+    }
+
+    private val adapter by lazy { BusinessCardAdapter() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        binding.rvCards.adapter = adapter
+        getAllBusinessCard()
         insertListeners()
 
     }
@@ -20,5 +31,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, AddBusinessCardActivity::class.java)
             startActivity(intent)
         }
+        adapter.listenershare = {card -> Image.share(this@MainActivity,card)
+
+        }
+    }
+
+    private fun getAllBusinessCard() {
+        mainViewModel.getAll().observe(this, { businessCards ->
+            adapter.submitList(businessCards)
+        })
     }
 }
